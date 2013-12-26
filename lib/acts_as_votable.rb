@@ -1,0 +1,2 @@
+module ActsAsVotable
+end
