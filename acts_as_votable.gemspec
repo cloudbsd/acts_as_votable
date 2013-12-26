@@ -7,11 +7,11 @@ require "acts_as_votable/version"
 Gem::Specification.new do |s|
   s.name        = "acts_as_votable"
   s.version     = ActsAsVotable::VERSION
-  s.authors     = ["TODO: Your name"]
-  s.email       = ["TODO: Your email"]
-  s.homepage    = "TODO"
-  s.summary     = "TODO: Summary of ActsAsVotable."
-  s.description = "TODO: Description of ActsAsVotable."
+  s.authors     = ["Qi Li"]
+  s.email       = ["cloudbsd@gmail.com"]
+  s.homepage    = "http://github.com/cloudbsd/acts_as_votable"
+  s.summary     = "Acts As Votable Gem."
+  s.description = "ActsAsVotable gem provides a simple way to track users votes."
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
   s.test_files = Dir["test/**/*"]
