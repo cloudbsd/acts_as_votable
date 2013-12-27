@@ -42,154 +42,212 @@ class ActsAsVotableTest < ActiveSupport::TestCase
     assert post.respond_to? :unvote_by
   end
 
-  test "method 'acts_as_voter' is available" do
+  test "vote?/vote/unvote methods work" do
     user1, user2, user3 = User.all[0], User.all[1], User.all[2];
-    post1, post2 = Post.all[0], Post.all[1];
+    post1, post2, post3 = Post.all[0], Post.all[1], Post.all[2];
 
+    # vote?
     assert_equal(false, user1.vote?(post1, 'voteup'))
-    user1.vote(post1, 'voteup', post1.user, 5)
-    assert_equal(true, user1.vote?(post1, 'voteup'))
-    assert_equal 1, user1.votes.count
+    assert_equal(false, user1.vote?(post1, 'votedown'))
 
-    user1.unvote(post1, 'voteup')
+    # vote
+    user1.vote post1, 'voteup', post1.user
+    user1.vote post1, 'votedown', post1.user
+    assert_equal(true,  user1.vote?(post1, 'voteup'))
+    assert_equal(true,  user1.vote?(post1, 'votedown'))
+
+    user2.vote post2, 'voteup', post2.user
+    assert_equal(true,  user2.vote?(post2, 'voteup'))
+    assert_equal(false, user2.vote?(post2, 'votedown'))
+
+    # unvote
+    user1.unvote post1, nil
     assert_equal(false, user1.vote?(post1, 'voteup'))
+    assert_equal(false, user1.vote?(post1, 'votedown'))
 
-    assert_equal(false, user1.vote?(post2, 'votedown'))
-    user1.vote(post2, 'votedown', post2.user)
-    assert_equal(true, user1.vote?(post2, 'votedown'))
-    assert_equal 1, user1.votes.count
+    user2.unvote post2, ['voteup', 'votedown']
+    assert_equal(false, user2.vote?(post2, 'voteup'))
+    assert_equal(false, user2.vote?(post2, 'votedown'))
+  end
 
-    assert_equal 1, ActsAsVotable::Vote.all.count
+  test "vote_by?/vote_by/unvote_by methods work" do
+    user1, user2, user3 = User.all[0], User.all[1], User.all[2];
+    post1, post2, post3 = Post.all[0], Post.all[1], Post.all[2];
 
-    user1.unvote(post2, ['voteup', 'votedown'])
+    # vote_by?
+    assert_equal(false, post1.vote_by?(post1, 'voteup'))
+    assert_equal(false, post1.vote_by?(post1, 'votedown'))
+
+    # vote_by
+    post1.vote_by post1, 'voteup', post1.user
+    post1.vote_by post1, 'votedown', post1.user
+    assert_equal(true,  post1.vote_by?(post1, 'voteup'))
+    assert_equal(true,  post1.vote_by?(post1, 'votedown'))
+
+    post2.vote_by post2, 'voteup', post2.user
+    assert_equal(true,  post2.vote_by?(post2, 'voteup'))
+    assert_equal(false, post2.vote_by?(post2, 'votedown'))
+
+    # unvote
+    post1.unvote_by post1, nil
+    assert_equal(false, post1.vote_by?(post1, 'voteup'))
+    assert_equal(false, post1.vote_by?(post1, 'votedown'))
+
+    post2.unvote_by post2, ['voteup', 'votedown']
+    assert_equal(false, post2.vote_by?(post2, 'voteup'))
+    assert_equal(false, post2.vote_by?(post2, 'votedown'))
+  end
+
+  test "method 'acts_as_voter' works" do
+    user1, user2, user3 = User.all[0], User.all[1], User.all[2];
+    post1, post2, post3 = Post.all[0], Post.all[1], Post.all[2];
+
+    # generated macros
     assert_equal 0, user1.votes.count
-    assert_equal 0, ActsAsVotable::Vote.all.count
+    assert_equal 0, user2.votes.count
+    assert_equal 0, user3.votes.count
+    assert_equal 0, user1.owned_votes.count
+    assert_equal 0, user2.owned_votes.count
+    assert_equal 0, user3.owned_votes.count
+    assert_equal 0, ActsAsVotable::Vote.count
+
+    # vote
+    user1.vote post3, 'votedown', post3.user
+    user1.vote post1, 'voteup', post1.user
+    user2.vote post1, 'voteup', post1.user
+
+    # generated macros
+    assert_equal 2, user1.votes.count
+    assert_equal 1, user2.votes.count
+    assert_equal 0, user3.votes.count
+    assert_equal 2, user1.owned_votes.count
+    assert_equal 0, user2.owned_votes.count
+    assert_equal 1, user3.owned_votes.count
+    assert_equal 3, ActsAsVotable::Vote.count
+
+    # unvote
+    user2.unvote(post1, 'voteup')
+    assert_equal 2, user1.votes.count
+    assert_equal 0, user2.votes.count # changed
+    assert_equal 0, user3.votes.count
+    assert_equal 1, user1.owned_votes.count # changed
+    assert_equal 0, user2.owned_votes.count
+    assert_equal 1, user3.owned_votes.count
+    assert_equal 2, ActsAsVotable::Vote.count # changed
+
+    user1.unvote(post3, ['voteup', 'votedown'])
+    assert_equal 1, user1.votes.count
+    assert_equal 0, user2.votes.count
+    assert_equal 0, user3.votes.count
+    assert_equal 1, user1.owned_votes.count
+    assert_equal 0, user2.owned_votes.count
+    assert_equal 0, user3.owned_votes.count
+    assert_equal 1, ActsAsVotable::Vote.count
   end
 
-  test "method 'acts_as_votable' is available" do
-    user1, user2 = User.all[0], User.all[1];
-    post1, post2 = Post.all[0], Post.all[1];
+  test "method 'acts_as_votable' works" do
+    user1, user2, user3 = User.all[0], User.all[1], User.all[2];
+    post1, post2, post3 = Post.all[0], Post.all[1], Post.all[2];
 
-    assert_equal(false, post1.vote_by?(user1, 'voteup'))
-    post1.vote_by(user1, 'voteup', post1.user)
-    assert_equal(true, post1.vote_by?(user1, 'voteup'))
-    assert_equal 1, post1.votes.count
-
-    post1.unvote_by(user1, 'voteup')
-    assert_equal(false, post1.vote_by?(user1, 'voteup'))
-
-    assert_equal(false, post1.vote_by?(user2, 'votedown'))
-    post1.vote_by(user2, 'votedown', post2.user)
-    assert_equal(true, post1.vote_by?(user2, 'votedown'))
-    assert_equal 1, post1.votes.count
-
-    assert_equal 1, ActsAsVotable::Vote.all.count
-
-    post1.unvote_by(user2, nil)
+    # generated macros
     assert_equal 0, post1.votes.count
-    assert_equal 0, ActsAsVotable::Vote.all.count
+    assert_equal 0, post2.votes.count
+    assert_equal 0, post3.votes.count
+    assert_equal 0, ActsAsVotable::Vote.count
+
+    # vote_by
+    post3.vote_by user1, 'votedown', post3.user
+    post1.vote_by user1, 'voteup', post1.user
+    post1.vote_by user2, 'voteup', post1.user
+
+    # generated macros
+    assert_equal 2, post1.votes.count
+    assert_equal 0, post2.votes.count
+    assert_equal 1, post3.votes.count
+    assert_equal 3, ActsAsVotable::Vote.count
+
+    # unvote_by
+    post1.unvote_by(user2, 'voteup')
+    assert_equal 1, post1.votes.count
+    assert_equal 0, post2.votes.count # changed
+    assert_equal 1, post3.votes.count
+    assert_equal 2, ActsAsVotable::Vote.count # changed
+
+    post3.unvote_by(user1, ['voteup', 'votedown'])
+    assert_equal 1, post1.votes.count
+    assert_equal 0, post2.votes.count
+    assert_equal 0, post3.votes.count
+    assert_equal 1, ActsAsVotable::Vote.count
   end
 
-  test "method 'acts_as_voter_on' is available" do
-    user1, user2 = User.all[0], User.all[1];
-    post1, post2 = Post.all[0], Post.all[1];
+  test "'acts_as_voter_on' generated methods work" do
+    user1, user2, user3 = User.all[0], User.all[1], User.all[2];
+    post1, post2, post3 = Post.all[0], Post.all[1], Post.all[2];
 
+    # generated macros
     assert_equal 0, user1.voteup_posts_votes.count
     assert_equal 0, user1.voteup_posts.count
-    user1.vote(post1, 'voteup', post1.user)
-    assert_equal 1, user1.votes.where(action: 'voteup').size
-    assert_equal 1, user1.voteup_posts_votes.count
-    assert_equal 1, user1.voteup_posts.count
+    assert_equal 0, user1.voteup_votes.count
 
-    assert_equal 0, user1.votedown_posts_votes.count
-    assert_equal 0, user1.votedown_posts.count
-    user1.vote(post1, 'votedown', post1.user)
-    assert_equal 1, user1.votes.where(action: 'votedown').size
-    assert_equal 1, user1.votedown_posts_votes.count
-    assert_equal 1, user1.votedown_posts.count
+    # voteup
+    user1.voteup post1, post1.user
+    user2.voteup post1, post2.user
 
-    assert_equal 2, user1.votes.size
-  end
-
-  test "method 'acts_as_votable_by' is available" do
-    user1, user2 = User.all[0], User.all[1];
-    post1, post2 = Post.all[0], Post.all[1];
-
-    assert_equal 0, post1.voteup_users_votes.count
-    assert_equal 0, post1.voteup_users.count
-    post1.vote_by(user1, 'voteup', post1.user)
-    assert_equal 1, post1.votes.where(action: 'voteup').size
-    assert_equal 1, post1.voteup_users_votes.count
-    assert_equal 1, post1.voteup_users.count
-
-    assert_equal 0, post1.votedown_users_votes.count
-    assert_equal 0, post1.votedown_users.count
-    post1.vote_by(user1, 'votedown', post1.user)
-    assert_equal 1, post1.votes.where(action: 'votedown').size
-    assert_equal 1, post1.votedown_users_votes.count
-    assert_equal 1, post1.votedown_users.count
-
-    assert_equal 2, post1.votes.size
-  end
-
-  test "generated methods by 'acts_as_voter_on' are available" do
-    user1, user2 = User.all[0], User.all[1];
-    post1, post2 = Post.all[0], Post.all[1];
-
-    assert_equal 0, user1.voteup_posts_votes.count
-    assert_equal 0, user1.voteup_posts.count
-
-    assert_equal false, user1.voteup?(post1)
-    user1.voteup(post1, post1.user)
+    # voteup?
     assert_equal true, user1.voteup?(post1)
+    assert_equal true, user2.voteup?(post1)
+    assert_equal false, user3.voteup?(post1)
 
-    user1.voteup(post2, post1.user)
-    assert_equal 2, user1.votes.where(action: 'voteup').size
-    assert_equal 2, user1.voteup_posts_votes.count
-    assert_equal 2, user1.voteup_posts.count
-
-    user1.unvoteup(post2)
-    assert_equal 1, user1.votes.where(action: 'voteup').size
+    # generated macros
     assert_equal 1, user1.voteup_posts_votes.count
     assert_equal 1, user1.voteup_posts.count
+    assert_equal 1, user1.voteup_votes.count
 
-    assert_equal 0, user1.votedown_posts_votes.count
-    assert_equal 0, user1.votedown_posts.count
+    # voteup_count
+    assert_equal 1, user1.voteup_count
+    assert_equal 1, user2.voteup_count
+    assert_equal 0, user3.voteup_count
 
-    user1.votedown(post1, post1.user)
-    assert_equal 1, user1.votes.where(action: 'votedown').size
-    assert_equal 1, user1.votedown_posts_votes.count
-    assert_equal 1, user1.votedown_posts.count
-
-    assert_equal 2, user1.votes.size
+    # unvoteup
+    user2.unvoteup post1
+    assert_equal true, user1.voteup?(post1)
+    assert_equal false, user2.voteup?(post1)
+    assert_equal false, user3.voteup?(post1)
   end
 
-  test "generated methods 'acts_as_votable_by' are available" do
-    user1, user2 = User.all[0], User.all[1];
-    post1, post2 = Post.all[0], Post.all[1];
+  test "'acts_as_votable_by' generated methods work" do
+    user1, user2, user3 = User.all[0], User.all[1], User.all[2];
+    post1, post2, post3 = Post.all[0], Post.all[1], Post.all[2];
 
+    # generated macros
     assert_equal 0, post1.voteup_users_votes.count
     assert_equal 0, post1.voteup_users.count
+    assert_equal 0, post1.voteup_votes.count
 
-    assert_equal false, post1.voteup_by?(user1)
+    # voteup_by
     post1.voteup_by user1, post1.user
-    assert_equal true, post1.voteup_by?(user1)
+    post2.voteup_by user1, post2.user
 
-    assert_equal 1, post1.votes.where(action: 'voteup').size
+    # voteup_by?
+    assert_equal true, post1.voteup_by?(user1)
+    assert_equal true, post2.voteup_by?(user1)
+    assert_equal false, post3.voteup_by?(user1)
+
+    # generated macros
     assert_equal 1, post1.voteup_users_votes.count
+    assert_equal 1, post1.voteup_votes.count
     assert_equal 1, post1.voteup_users.count
 
-    post1.unvoteup_by user1
-    assert_equal false, post1.voteup_by?(user1)
+    # voteup_by_count
+    assert_equal 1, post1.voteup_by_count
+    assert_equal 1, post2.voteup_by_count
+    assert_equal 0, post3.voteup_by_count
 
-    assert_equal 0, post1.votedown_users_votes.count
-    assert_equal 0, post1.votedown_users.count
-    post1.vote_by(user1, 'votedown', post1.user)
-    assert_equal 1, post1.votes.where(action: 'votedown').size
-    assert_equal 1, post1.votedown_users_votes.count
-    assert_equal 1, post1.votedown_users.count
-
-    assert_equal 1, post1.votes.size
+    # unvoteup_by
+    post2.unvoteup_by user1
+    assert_equal true, post1.voteup_by?(user1)
+    assert_equal false, post2.voteup_by?(user1)
+    assert_equal false, post3.voteup_by?(user1)
   end
 
   test "weight in vote model works" do

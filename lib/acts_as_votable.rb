@@ -39,17 +39,7 @@ module ActsAsVotable
         has_many action_votes, -> { where(action: action_name) }, as: :votable, dependent: :destroy, class_name: 'ActsAsVotable::Vote'
         has_many action_voters, through: action_voter_votes, source: :voter, source_type: object_type
 
-        define_method("#{action_name}_by?") do |voter|
-          self.vote_by?(voter, action_name)
-        end
-
-        define_method("#{action_name}_by") do |voter, owner, weight = 1|
-          self.vote_by(voter, action_name, owner, weight)
-        end
-
-        define_method("un#{action_name}_by") do |voter|
-          self.unvote_by(voter, action_name)
-        end
+        do_generate_votable_methods action_name
       end
     end # acts_as_votable_by
 
@@ -71,19 +61,69 @@ module ActsAsVotable
         has_many action_votes, -> { where(action: action_name) }, as: :voter, dependent: :destroy, class_name: 'ActsAsVotable::Vote'
         has_many action_votables, through: action_votables_votes, source: :votable, source_type: object_type
 
-        define_method("#{action_name}?") do |votable|
+        do_generate_voter_methods action_name
+      end
+    end # acts_as_voter_on
+
+    def do_generate_votable_methods(action_name)
+      method_name = "#{action_name}_by?"
+      unless self.respond_to? method_name.to_sym
+        define_method(method_name) do |voter|
+          self.vote_by?(voter, action_name)
+        end
+      end
+
+      method_name = "#{action_name}_by"
+      unless self.respond_to? method_name.to_sym
+        define_method(method_name) do |voter, owner, weight = 1|
+          self.vote_by(voter, action_name, owner, weight)
+        end
+      end
+
+      method_name = "un#{action_name}_by"
+      unless self.respond_to? method_name.to_sym
+        define_method(method_name) do |voter|
+          self.unvote_by(voter, action_name)
+        end
+      end
+
+      method_name = "#{action_name}_by_count"
+      unless self.respond_to? method_name.to_sym
+        define_method(method_name) do
+          self.votes.where(action: action_name).size
+        end
+      end
+    end # do_generate_votable_methods
+
+    def do_generate_voter_methods(action_name)
+      method_name = "#{action_name}?"
+      unless self.respond_to? method_name.to_sym
+        define_method(method_name) do |votable|
           self.vote?(votable, action_name)
         end
+      end
 
-        define_method("#{action_name}") do |votable, owner, weight = 1|
+      method_name = "#{action_name}"
+      unless self.respond_to? method_name.to_sym
+        define_method(method_name) do |votable, owner, weight = 1|
           self.vote(votable, action_name, owner, weight)
         end
+      end
 
-        define_method("un#{action_name}") do |votable|
+      method_name = "un#{action_name}"
+      unless self.respond_to? method_name.to_sym
+        define_method(method_name) do |votable|
           self.unvote(votable, action_name)
         end
       end
-    end # acts_as_voter_on
+
+      method_name = "#{action_name}_count"
+      unless self.respond_to? method_name.to_sym
+        define_method(method_name) do
+          self.votes.where(action: action_name).size
+        end
+      end
+    end # do_generate_voter_methods
 
     def do_acts_as_votable(options={})
       unless self.is_votable?
