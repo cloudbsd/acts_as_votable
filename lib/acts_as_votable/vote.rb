@@ -11,6 +11,6 @@ module ActsAsVotable
   # validates :owner_id, presence: true
   # validates :owner_type, presence: true
   # validates :action, presence: true
-  # validates :weight, presence: true, numericality: true
+    validates :weight, presence: true, numericality: true
   end
 end

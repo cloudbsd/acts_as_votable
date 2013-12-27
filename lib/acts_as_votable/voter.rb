@@ -16,17 +16,14 @@ module ActsAsVotable
         self.votes.find_by(votable: votable, action: action).present?
       end
 
-      def vote(votable, action, owner, weight = 0)
+      def vote(votable, action, owner, weight = 1)
         self.votes.create(votable: votable, action: action, owner: owner, weight: weight)
       end
-
-    # def unvote(votable, action)
-    #   self.votes.where(votable: votable, action: action).destroy_all
-    # end
 
       def unvote(votable, actions)
         if actions.nil?
           self.votes.where(votable: votable).destroy_all
+        # self.votes.where(votable: votable, action: action).destroy_all
         else
           conditions = []
           Array(actions).each do |act|

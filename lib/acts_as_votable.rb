@@ -43,8 +43,8 @@ module ActsAsVotable
           self.vote_by?(voter, action_name)
         end
 
-        define_method("#{action_name}_by") do |voter, owner|
-          self.vote_by(voter, action_name, owner)
+        define_method("#{action_name}_by") do |voter, owner, weight = 1|
+          self.vote_by(voter, action_name, owner, weight)
         end
 
         define_method("un#{action_name}_by") do |voter|
@@ -75,8 +75,8 @@ module ActsAsVotable
           self.vote?(votable, action_name)
         end
 
-        define_method("#{action_name}") do |votable, owner|
-          self.vote(votable, action_name, owner)
+        define_method("#{action_name}") do |votable, owner, weight = 1|
+          self.vote(votable, action_name, owner, weight)
         end
 
         define_method("un#{action_name}") do |votable|

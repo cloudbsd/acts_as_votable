@@ -43,11 +43,11 @@ class ActsAsVotableTest < ActiveSupport::TestCase
   end
 
   test "method 'acts_as_voter' is available" do
-    user1, user2 = User.all[0], User.all[1];
+    user1, user2, user3 = User.all[0], User.all[1], User.all[2];
     post1, post2 = Post.all[0], Post.all[1];
 
     assert_equal(false, user1.vote?(post1, 'voteup'))
-    user1.vote(post1, 'voteup', post1.user)
+    user1.vote(post1, 'voteup', post1.user, 5)
     assert_equal(true, user1.vote?(post1, 'voteup'))
     assert_equal 1, user1.votes.count
 
@@ -65,6 +65,25 @@ class ActsAsVotableTest < ActiveSupport::TestCase
     user1.unvote(post2, ['voteup', 'votedown'])
     assert_equal 0, user1.votes.count
     assert_equal 0, ActsAsVotable::Vote.all.count
+  end
+
+  test "weight in vote model works" do
+    user1, user2, user3 = User.all[0], User.all[1], User.all[2];
+    post1, post2, post3 = Post.all[0], Post.all[1], Post.all[2];
+
+    user1.vote(post2, 'voteup', post2.user, 5)
+    user2.vote(post1, 'voteup', post1.user, 5)
+    user3.vote(post1, 'voteup', post1.user, 5)
+    assert_equal 15, ActsAsVotable::Vote.all.sum('weight')
+    assert_equal  5, user1.votes.sum('weight')
+    assert_equal 10, user1.owned_votes.sum('weight')
+
+    user1.voteup(post3, post3.user)
+    assert_equal 1, user3.owned_votes.sum('weight')
+    user2.voteup(post3, post3.user, 10)
+    assert_equal 11, user3.owned_votes.sum('weight')
+    user2.votedown(post3, post3.user, -1)
+    assert_equal 10, user3.owned_votes.sum('weight')
   end
 
   test "method 'acts_as_votable' is available" do
