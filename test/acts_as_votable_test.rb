@@ -268,4 +268,66 @@ class ActsAsVotableTest < ActiveSupport::TestCase
     user2.votedown(post3, post3.user, -1)
     assert_equal 10, user3.owned_votes.sum('weight')
   end
+
+  test "'acts_as_voter_on' allow first parameter is only action" do
+    user1, user2, user3 = User.all[0], User.all[1], User.all[2];
+    post1, post2, post3 = Post.all[0], Post.all[1], Post.all[2];
+
+    # generated macros
+    assert_equal 0, user1.accept_votes.count
+
+    # accept
+    user1.accept post1, post1.user
+    user2.accept post1, post2.user
+
+    # accept?
+    assert_equal true, user1.accept?(post1)
+    assert_equal true, user2.accept?(post1)
+    assert_equal false, user3.accept?(post1)
+
+    # generated macros
+    assert_equal 1, user1.accept_votes.count
+
+    # accept_count
+    assert_equal 1, user1.accept_count
+    assert_equal 1, user2.accept_count
+    assert_equal 0, user3.accept_count
+
+    # unaccept
+    user2.unaccept post1
+    assert_equal true, user1.accept?(post1)
+    assert_equal false, user2.accept?(post1)
+    assert_equal false, user3.accept?(post1)
+  end
+
+  test "'acts_as_votable_by' allow first parameter is only action" do
+    user1, user2, user3 = User.all[0], User.all[1], User.all[2];
+    post1, post2, post3 = Post.all[0], Post.all[1], Post.all[2];
+
+    # generated macros
+    assert_equal 0, post1.accept_votes.count
+
+    # accept_by
+    post1.accept_by user1, post1.user
+    post2.accept_by user1, post2.user
+
+    # accept_by?
+    assert_equal true, post1.accept_by?(user1)
+    assert_equal true, post2.accept_by?(user1)
+    assert_equal false, post3.accept_by?(user1)
+
+    # generated macros
+    assert_equal 1, post1.accept_votes.count
+
+    # accept_by_count
+    assert_equal 1, post1.accept_by_count
+    assert_equal 1, post2.accept_by_count
+    assert_equal 0, post3.accept_by_count
+
+    # unaccept_by
+    post2.unaccept_by user1
+    assert_equal true, post1.accept_by?(user1)
+    assert_equal false, post2.accept_by?(user1)
+    assert_equal false, post3.accept_by?(user1)
+  end
 end

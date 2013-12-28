@@ -30,14 +30,22 @@ module ActsAsVotable
 
       if action_voters.present?
         names = /(.+?)_(.+)/.match(action_voters.to_s)
-        action_name = names[1]
-        object_type = names[2].singularize.camelize
-        action_votes = (action_name + '_votes').to_sym
-        action_voter_votes = (names[0] + '_votes').to_sym
 
-        has_many action_voter_votes, -> { where(action: action_name, voter_type: object_type) }, as: :votable, dependent: :destroy, class_name: 'ActsAsVotable::Vote'
-        has_many action_votes, -> { where(action: action_name) }, as: :votable, dependent: :destroy, class_name: 'ActsAsVotable::Vote'
-        has_many action_voters, through: action_voter_votes, source: :voter, source_type: object_type
+        if names.nil?
+          action_name = action_voters.to_s
+          action_votes = "#{action_name}_votes".to_sym
+
+          has_many action_votes, -> { where(action: action_name) }, as: :votable, dependent: :destroy, class_name: 'ActsAsVotable::Vote'
+        else
+          action_name = names[1]
+          object_type = names[2].singularize.camelize
+          action_votes = (action_name + '_votes').to_sym
+          action_voter_votes = (names[0] + '_votes').to_sym
+
+          has_many action_voter_votes, -> { where(action: action_name, voter_type: object_type) }, as: :votable, dependent: :destroy, class_name: 'ActsAsVotable::Vote'
+          has_many action_votes, -> { where(action: action_name) }, as: :votable, dependent: :destroy, class_name: 'ActsAsVotable::Vote'
+          has_many action_voters, through: action_voter_votes, source: :voter, source_type: object_type
+        end
 
         do_generate_votable_methods action_name
       end
@@ -52,14 +60,22 @@ module ActsAsVotable
 
       if action_votables.present?
         names = /(.+?)_(.+)/.match(action_votables.to_s)
-        action_name = names[1]
-        object_type = names[2].singularize.camelize
-        action_votes = (action_name + '_votes').to_sym
-        action_votables_votes = (names[0] + '_votes').to_sym
 
-        has_many action_votables_votes, -> { where(action: action_name, votable_type: object_type) }, as: :voter, dependent: :destroy, class_name: 'ActsAsVotable::Vote'
-        has_many action_votes, -> { where(action: action_name) }, as: :voter, dependent: :destroy, class_name: 'ActsAsVotable::Vote'
-        has_many action_votables, through: action_votables_votes, source: :votable, source_type: object_type
+        if names.nil?
+          action_name = action_votables.to_s
+          action_votes = "#{action_name}_votes".to_sym
+
+          has_many action_votes, -> { where(action: action_name) }, as: :voter, dependent: :destroy, class_name: 'ActsAsVotable::Vote'
+        else
+          action_name = names[1]
+          object_type = names[2].singularize.camelize
+          action_votes = (action_name + '_votes').to_sym
+          action_votables_votes = (names[0] + '_votes').to_sym
+
+          has_many action_votables_votes, -> { where(action: action_name, votable_type: object_type) }, as: :voter, dependent: :destroy, class_name: 'ActsAsVotable::Vote'
+          has_many action_votes, -> { where(action: action_name) }, as: :voter, dependent: :destroy, class_name: 'ActsAsVotable::Vote'
+          has_many action_votables, through: action_votables_votes, source: :votable, source_type: object_type
+        end
 
         do_generate_voter_methods action_name
       end
