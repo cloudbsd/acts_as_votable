@@ -12,8 +12,8 @@ module ActsAsVotable
         end
       end # module ClassMethods
 
-      def vote_by?(voter, action)
-        self.votes.find_by(voter: voter, action: action).present?
+      def vote_by?(voter, actions)
+        self.votes.exists?(voter: voter, action: actions)
       end
 
       def vote_by(voter, action, owner = nil, weight = 1)
@@ -25,11 +25,12 @@ module ActsAsVotable
           self.votes.where(voter: voter).destroy_all
         # self.votes.where(voter: voter, action: action).destroy_all
         else
-          conditions = []
-          Array(actions).each do |act|
-            conditions << "action = '#{act}'"
-          end
-          self.votes.where(voter: voter).where(conditions.join(" or ")).destroy_all
+          self.votes.where(voter: voter, action: actions).destroy_all
+        # conditions = []
+        # Array(actions).each do |act|
+        #   conditions << "action = '#{act}'"
+        # end
+        # self.votes.where(voter: voter).where(conditions.join(" or ")).destroy_all
         end
       end
 
