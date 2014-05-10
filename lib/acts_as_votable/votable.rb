@@ -23,14 +23,8 @@ module ActsAsVotable
       def unvote_by(voter, actions)
         if actions.nil?
           self.votes.where(voter: voter).destroy_all
-        # self.votes.where(voter: voter, action: action).destroy_all
         else
           self.votes.where(voter: voter, action: actions).destroy_all
-        # conditions = []
-        # Array(actions).each do |act|
-        #   conditions << "action = '#{act}'"
-        # end
-        # self.votes.where(voter: voter).where(conditions.join(" or ")).destroy_all
         end
       end
 
