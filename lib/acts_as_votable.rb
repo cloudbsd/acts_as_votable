@@ -91,7 +91,7 @@ module ActsAsVotable
 
       method_name = "#{action_name}_by"
       unless self.respond_to? method_name.to_sym
-        define_method(method_name) do |voter, owner, weight = 1|
+        define_method(method_name) do |voter, owner, weight = 0|
           self.vote_by(voter, action_name, owner, weight)
         end
       end
@@ -121,7 +121,7 @@ module ActsAsVotable
 
       method_name = "#{action_name}"
       unless self.respond_to? method_name.to_sym
-        define_method(method_name) do |votable, owner, weight = 1|
+        define_method(method_name) do |votable, owner, weight = 0|
           self.vote(votable, action_name, owner, weight)
         end
       end

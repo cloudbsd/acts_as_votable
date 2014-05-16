@@ -262,11 +262,11 @@ class ActsAsVotableTest < ActiveSupport::TestCase
     assert_equal 10, user1.owned_votes.sum('weight')
 
     user1.voteup(post3, post3.user)
-    assert_equal 1, user3.owned_votes.sum('weight')
+    assert_equal 0, user3.owned_votes.sum('weight')
     user2.voteup(post3, post3.user, 10)
-    assert_equal 11, user3.owned_votes.sum('weight')
-    user2.votedown(post3, post3.user, -1)
     assert_equal 10, user3.owned_votes.sum('weight')
+    user2.votedown(post3, post3.user, -1)
+    assert_equal 9, user3.owned_votes.sum('weight')
   end
 
   test "'acts_as_voter_on' allow first parameter is only action" do
