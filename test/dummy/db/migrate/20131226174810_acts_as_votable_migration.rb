@@ -5,7 +5,7 @@ class ActsAsVotableMigration < ActiveRecord::Migration
       t.belongs_to :voter, polymorphic: true, :null => false, index: true
       t.belongs_to :owner, polymorphic: true, :null => false, index: true
       t.string  :action, :null => false
-      t.string  :response
+      t.string  :verdict
       t.integer :weight, :null => false, :default => 0
 
       t.timestamps

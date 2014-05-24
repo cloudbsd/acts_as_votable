@@ -36,7 +36,7 @@ ActiveRecord::Schema.define(version: 20131226174810) do
     t.integer  "owner_id",                 null: false
     t.string   "owner_type",               null: false
     t.string   "action",                   null: false
-    t.string   "response"
+    t.string   "verdict"
     t.integer  "weight",       default: 0, null: false
     t.datetime "created_at"
     t.datetime "updated_at"
