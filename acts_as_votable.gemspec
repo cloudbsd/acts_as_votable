@@ -19,7 +19,7 @@ Gem::Specification.new do |gem|
   gem.test_files = Dir["test/**/*"]
   gem.required_ruby_version     = '>= 1.9.3'
 
-  gem.add_dependency 'rails',  ['>= 4.2', '< 5']
+  gem.add_dependency 'rails',  ['>= 4.2', '< 6']
 # gem.add_dependency 'activerecord',  ['>= 4.1', '< 5']
 
   gem.add_development_dependency "sqlite3"
